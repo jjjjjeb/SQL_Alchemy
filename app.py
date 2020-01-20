@@ -44,17 +44,17 @@ def aloha():
     return (
         f'Aloha! Welcome to the Hawaii Climate App.<br/>'
         f'---------------------------------------------'
-        f'Get the full list of stations:'
+        f'Get the full list of stations:</br>'
         f'/api/v1.0/stations<br/>'
         f'</br>'
         f'Get the rainfall data:</br>'
         f'/api/v1.0/precipitation</br>'
         f'</br>'
-        f'Get the temperature data:'
+        f'Get the temperature data:</br>'
         f'/api/v1.0/tobs</br>'
         f'</br>'
         f'Search dates by inputting a start date & end date:</br>'
-        f'--API Example 1: /api/v1.0/searchdates/YYY-MM-DD -- gives the high, low, avg for given date & days after'
+        f'--API Example 1: /api/v1.0/searchdates/YYY-MM-DD -- gives the high, low, avg for given date & days after</br>'
         f'--API Example 2: /api/v1.0/searchdates/YYY-MM-YY/YYYY-MM-DD -- gives the high, low, avg for dates in between first and second date inputs'
     )
 
@@ -126,7 +126,8 @@ def end_search(start_date, end_date):
     
     start_end_results =  (session.query(*sel2).\
         filter(func.strftime('%Y-%m-%d', Measurement.date) >= start_date).\
-        filter(func.strftime('%Y-%m-%d', Measurement.date) <= end_date).group_by(Measurement.date.desc()).all()
+        filter(func.strftime('%Y-%m-%d', Measurement.date) <= end_date).\
+        group_by(Measurement.date.desc()).all()
     
     for s_e_r in start_end_results:
         ser_date_dict = {}
