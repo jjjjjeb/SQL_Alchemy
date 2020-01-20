@@ -8,74 +8,83 @@ from sqlalchemy import create_engine, func
 from flask import Flask, jsonify
 
 
-#################################################
-# Database Setup
+# database setup
 #################################################
 engine = create_engine("sqlite:///Resources/hawaii.sqlite", connect_args={'check_same_thread': False})
-
-# reflect an existing database into a new model
 Base = automap_base()
-# reflect the tables
 Base.prepare(engine, reflect=True)
 
-# Save reference to the table
+# table references
 Measurement = Base.classes.measurement
 Station = Base.classes.station
-#################################################
-# Flask Setup
+
+# session
+session = Session(engine)
+
+# flask - weather app
 #################################################
 app = Flask(__name__)
 
-#################################################
-# Flask Routes
-#################################################
+# variables
 
-# Welcome
-#################################################
+latest_day = session.query(Measurement.date).order_by(Measurement.date.desc()).first()
+latest_day = list(np.ravel(latest_day))[0]
+latest_day = dt.datetime.strptime(latest_day, '%Y-%m-%d')
 
-@app.route("/")
-def welcome():
+year = int(dt.datetime.strftime(latest_day, '%Y'))
+month = int(dt.datetime.strftime(latest_day, '%m'))
+day = int(dt.datetime.strftime(latest_day, '%d'))
+
+year_before = dt.date(year, month, day)-dt.timedelta(days=365)
+year_before = dt.datetime.strftime(year_before, '%Y-%m-%d')
+results = session.query(Measurement.date, Measurement.prcp).filter(Measurement.date > year_before).order_by(Measurement.date.desc()).all()
+
+
+
+# welcome page
+
+@app.route('/')
+def aloha():
     return (
-        f"test:<br/>"
-        f"/api/v1.0/precipitation<br/>"
-        f"/api/v1.0/stations<br/>"
-        f"/api/v1.0/tobs<br/>"
-      #  f"/api/v1.0/<start>"
-      #  f"/api/v1.0/<end>"
+        f'testing:<br/>'
+        f'/api/v1.0/stations<br/>'
+        f'/api/v1.0/precipitation<br/>'
+        f'/api/v1.0/tobs<br/>'
+      #  f'/api/v1.0/<start>''
+      #  f'/api/v1.0/<end>'
     )
 
+# stations
+@app.route('/api/v1.0/stations')
+def stations():
+    all_stations = session.query(Station.name).all()
+    all_stations = list(np.ravel(all_stations))
+    return jsonify(all_stations)
+
 # Precipitation
-#################################################
-@app.route("/api/v1.0/precipitation")
+@app.route('/api/v1.0/precipitation')
 def prcp():
-    # Create our session (link) from Python to the DB
-    session = Session(engine)
+    results = session.query(Measurement.date, Measurement.prcp, Measurement.station).\
+        filter(Measurement.date > year_before).\
+        order_by(Measurement.date.desc()).all()
+    
+    prcp_data = []
+    
+    for row in results:
+        prcp_dict = {row.date: row.prcp, "Station": row.station}
+        prcp_data.append(prcp_dict)
+
+    return jsonify(prcp_data)
 
     """Return a list of prcp data including"""
 
     # Query for precip
 
-    latest_day = session.query(Measurement.date).order_by(Measurement.date.desc()).first()
-    latest_day = list(np.ravel(latest_day))[0]
-    latest_day2 = dt.datetime.strptime(latest_day, '%Y-%m-%d')
-
-    year = int(dt.datetime.strftime(latest_day2, '%Y'))
-    month = int(dt.datetime.strftime(latest_day2, '%m'))
-    day = int(dt.datetime.strftime(latest_day2, '%d'))
-    
-    year_before = dt.date(year, month, day)-dt.timedelta(days=365)
-
-    results = session.query(Measurement.date, Measurement.prcp).filter(Measurement.date > year_before).order_by(Measurement.date.desc()).all()
-
     session.close()
 
     # Create a dictionary from the row data and append to a list of all_passengers
-    prcp_data = []
-    for row in results:
-        prcp_dict = {row.date, row.prcp}
-        prcp_data.append(prcp_dict)
-
-    return jsonify(prcp_dict)
+    
+    
 
 if __name__ == '__main__':
     app.run(debug=True)
