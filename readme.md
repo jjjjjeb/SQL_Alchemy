@@ -1,3 +1,3 @@
-# SQL Challenge
+# SQL Challenge: Surf's Up!
 
-An extreme data dive to explore the weather for my ficticious vacation in Hawaii.
+An extreme 'dive' into data to explore the weather during my ficticious vacation in Hawaii.
