@@ -95,7 +95,7 @@ def tobs():
     
     return jsonify(tobs_data)
 
-# hard one - start
+# ---------search dates-start
 @app.route('/api/v1.0/searchdates/<start_date>')
 def start_search(start_date):
     session = Session(engine)
@@ -117,18 +117,16 @@ def start_search(start_date):
 
     return jsonify(s_dates)
 
-# hard one - end
+# ---------search dates-end
 @app.route('/api/v1.0/datesearch/<start_date>/<end_date>')
-def end_search(start_date, end_date):
-    s_e_r_dates = []
-    
+def end_search(start_date, end_date):    
     sel2 = [Measurement.date, func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)]
-    
     start_end_results =  (session.query(*sel2).\
         filter(func.strftime('%Y-%m-%d', Measurement.date) >= start_date).\
         filter(func.strftime('%Y-%m-%d', Measurement.date) <= end_date).\
         group_by(Measurement.date.desc()).all()
     
+    s_e_r_dates = []
     for s_e_r in start_end_results:
         ser_date_dict = {}
         ser_date_dict['date'] = s_e_r[0]
@@ -138,7 +136,7 @@ def end_search(start_date, end_date):
         s_e_r_dates.append(ser_date_dict)
     
     return jsonify(s_e_r_dates)
-    
+
 session.close()
 
 if __name__ == '__main__':
